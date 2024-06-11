@@ -1,5 +1,5 @@
-use sc_service::ChainType;
-use solochain_template_runtime::{AccountId, RuntimeGenesisConfig, Signature, WASM_BINARY};
+use sc_service::{ChainType, Properties};
+use felidae_node_runtime::{AccountId, RuntimeGenesisConfig, Signature, WASM_BINARY};
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{sr25519, Pair, Public};
@@ -34,12 +34,17 @@ pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
 }
 
 pub fn development_config() -> Result<ChainSpec, String> {
+    let mut props = Properties::new();
+    props.insert("tokenSymbol".into(), "PAN".into());
+    props.insert("tokenDecimals".into(), 12.into());
+
     Ok(ChainSpec::builder(
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         None,
     )
     .with_name("Development")
     .with_id("dev")
+    .with_properties(props)
     .with_chain_type(ChainType::Development)
     .with_genesis_config_patch(testnet_genesis(
         // Initial PoA authorities
