@@ -1,4 +1,30 @@
+// This file is part of Substrate.
+
+// Copyright (C) Parity Technologies (UK) Ltd.
+// SPDX-License-Identifier: GPL-3.0-or-later WITH Classpath-exception-2.0
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The Substrate runtime. This can be compiled with `#[no_std]`, ready for Wasm.
+
 #![cfg_attr(not(feature = "std"), no_std)]
+// `construct_runtime!` does a lot of recursion and requires us to increase the limits.
+#![recursion_limit = "1024"]
+
+/// Constant values used within the runtime.
+pub mod constants;
+pub use constants::currency::*;
 
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
@@ -237,6 +263,30 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
 }
 
+impl pallet_utility::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type PalletsOrigin = OriginCaller;
+	type WeightInfo = pallet_utility::weights::SubstrateWeight<Runtime>;
+}
+
+parameter_types! {
+	// One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.
+	pub const DepositBase: Balance = deposit(1, 88);
+	// Additional storage item size of 32 bytes.
+	pub const DepositFactor: Balance = deposit(0, 32);
+}
+
+impl pallet_multisig::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type DepositBase = DepositBase;
+	type DepositFactor = DepositFactor;
+	type MaxSignatories = ConstU32<100>;
+	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
+}
+
 impl pallet_sudo::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
@@ -285,10 +335,16 @@ mod runtime {
 	pub type TransactionPayment = pallet_transaction_payment;
 
 	#[runtime::pallet_index(6)]
+	pub type Utility = pallet_utility;
+
+	#[runtime::pallet_index(7)]
+	pub type Multisig = pallet_multisig;
+
+	#[runtime::pallet_index(8)]
 	pub type Sudo = pallet_sudo;
 
 	// Include the custom logic from the pallet-template in the runtime.
-	#[runtime::pallet_index(7)]
+	#[runtime::pallet_index(9)]
 	pub type TemplateModule = pallet_template;
 }
 
@@ -338,6 +394,8 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
+		[pallet_utility, Utility]
+		[pallet_multisig, Multisig]
 		[pallet_sudo, Sudo]
 		[pallet_template, TemplateModule]
 	);
