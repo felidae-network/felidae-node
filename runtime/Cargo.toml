@@ -29,20 +29,26 @@ frame-support = { git = "https://github.com/paritytech/polkadot-sdk/", branch = 
 frame-system = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false }
 frame-try-runtime = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false, optional = true }
 frame-executive = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false }
-
 pallet-utility = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false } 
 pallet-multisig = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false }
 pallet-aura = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false }
+pallet-babe = { path = "../frame/babe/", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false }
-pallet-grandpa = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false }
+pallet-grandpa = { path = "../frame/grandpa/", default-features = false }
 pallet-sudo = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false }
 pallet-timestamp = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false }
 pallet-transaction-payment = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false }
+pallet-mmr = { path = "../frame/merkle-mountain-range", default-features = false }
+pallet-beefy = { path = "../frame/beefy", default-features = false }
+pallet-beefy-mmr = { path = "../frame/beefy-mmr", default-features = false }
 
 # primitives
 sp-api = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false }
 sp-block-builder = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false }
 sp-consensus-aura = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false, features = [
+	"serde",
+] }
+sp-consensus-babe = { path = "../primitives/consensus/babe", default-features = false, features = [
 	"serde",
 ] }
 sp-consensus-grandpa = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false, features = [
@@ -63,6 +69,8 @@ sp-transaction-pool = { git = "https://github.com/paritytech/polkadot-sdk/", bra
 sp-version = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false, features = [
 	"serde",
 ] }
+sp-consensus-beefy = { path = "../primitives/consensus/beefy", default-features = false }
+sp-mmr-primitives = { path = "../primitives/merkle-mountain-range", default-features = false }
 sp-genesis-builder = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false }
 
 # RPC related
@@ -73,7 +81,7 @@ pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/parityt
 frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false, optional = true }
 frame-system-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", default-features = false, optional = true }
 
-# The pallet in this template.
+# The pallet template.
 pallet-template = { path = "../pallets/template", default-features = false }
 
 [build-dependencies]
@@ -95,19 +103,25 @@ std = [
 	"frame-try-runtime?/std",
 
 	"pallet-aura/std",
+	"pallet-babe/std",
 	"pallet-balances/std",
 	"pallet-grandpa/std",
-	"pallet-utility/std",
-	"pallet-multisig/std",
 	"pallet-sudo/std",
 	"pallet-template/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
+	"pallet-utility/std",
+	"pallet-multisig/std",
+	"pallet-mmr/std",
+	"pallet-beefy-mmr/std",
+	"pallet-beefy/std",
 
 	"sp-api/std",
 	"sp-block-builder/std",
 	"sp-consensus-aura/std",
+	"sp-consensus-babe/std",
+	"sp-consensus-beefy/std",
 	"sp-consensus-grandpa/std",
 	"sp-core/std",
 	"sp-genesis-builder/std",
@@ -118,6 +132,7 @@ std = [
 	"sp-std/std",
 	"sp-storage/std",
 	"sp-transaction-pool/std",
+	"sp-mmr-primitives/std",
 	"sp-version/std",
 
 	"substrate-wasm-builder",
@@ -129,9 +144,11 @@ runtime-benchmarks = [
 	"frame-system-benchmarking/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
+	"pallet-babe/runtime-benchmarks",
 	"pallet-grandpa/runtime-benchmarks",
 	"pallet-utility/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
+	"pallet-mmr/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
 	"pallet-template/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
@@ -144,10 +161,14 @@ try-runtime = [
 	"frame-system/try-runtime",
 	"frame-try-runtime/try-runtime",
 	"pallet-aura/try-runtime",
+	"pallet-babe/try-runtime",
 	"pallet-balances/try-runtime",
+	"pallet-beefy-mmr/try-runtime",
+	"pallet-beefy/try-runtime",
 	"pallet-grandpa/try-runtime",
 	"pallet-utility/try-runtime",
 	"pallet-multisig/try-runtime",
+	"pallet-mmr/try-runtime",
 	"pallet-sudo/try-runtime",
 	"pallet-template/try-runtime",
 	"pallet-timestamp/try-runtime",
