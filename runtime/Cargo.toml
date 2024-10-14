@@ -75,6 +75,7 @@ frame-system-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk/
 
 # The pallet in this template.
 pallet-template = { path = "../pallets/template", default-features = false }
+pallet-adoption = { path = "../pallets/adoption", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/paritytech/polkadot-sdk/", branch = "release-polkadot-v1.12.0", optional = true }
@@ -101,6 +102,7 @@ std = [
 	"pallet-multisig/std",
 	"pallet-sudo/std",
 	"pallet-template/std",
+	"pallet-adoption/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
@@ -134,6 +136,7 @@ runtime-benchmarks = [
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
 	"pallet-template/runtime-benchmarks",
+	"pallet-adoption/runtime-benchmarks",	
 	"pallet-timestamp/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 ]
@@ -150,6 +153,7 @@ try-runtime = [
 	"pallet-multisig/try-runtime",
 	"pallet-sudo/try-runtime",
 	"pallet-template/try-runtime",
+	"pallet-adoption/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"sp-runtime/try-runtime",

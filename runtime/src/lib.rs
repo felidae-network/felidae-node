@@ -26,6 +26,9 @@
 pub mod constants;
 pub use constants::currency::*;
 
+/// Import the adoption pallet.
+pub use pallet_adoption;
+
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
@@ -299,6 +302,27 @@ impl pallet_template::Config for Runtime {
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+	///max length of id in adoption pallet
+	pub const MaxLength:u32 = 10;
+		///min length of id in adoption pallet
+	pub const MinLength:u32 = 5;
+	///max and min (32 for v0) length of CID
+	pub const MinCIDLength:u32 = 32;
+	pub const MaxCIDLength:u32 = 100; //most likely max as length depends on hashing algo
+}
+
+// Configure the pallet-adoption in pallets/adoption.
+impl pallet_adoption::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type MaxLength = MaxLength;
+	type MinLength = MinLength;
+	type MinCIDLength = MinCIDLength;
+	type MaxCIDLength = MaxCIDLength;
+	type Currency = Balances;
+	// type WeightInfo = ();
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 #[frame_support::runtime]
 mod runtime {
@@ -346,6 +370,9 @@ mod runtime {
 	// Include the custom logic from the pallet-template in the runtime.
 	#[runtime::pallet_index(9)]
 	pub type TemplateModule = pallet_template;
+
+	#[runtime::pallet_index(10)]
+	pub type AdoptionModule = pallet_adoption;
 }
 
 /// The address format for describing accounts.
