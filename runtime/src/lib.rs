@@ -26,7 +26,7 @@
 pub mod constants;
 pub use constants::currency::*;
 
-/// Import the adoption pallet.
+/// Import adoption pallet.
 pub use pallet_adoption;
 
 #[cfg(feature = "std")]

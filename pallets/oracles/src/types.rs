@@ -39,7 +39,7 @@ pub struct Oracle<AccountId, BlockNumber, Balance> {
 	pub reputation_score: FixedI64,
 }
 
-// enum to hold the state of the oracles
+// Enum to hold the state of the oracles
 #[derive(Default, Clone, Encode, Decode, PartialEq, TypeInfo, Debug, MaxEncodedLen)]
 #[scale_info(skip_type_params(T))]
 pub enum OracleState {
@@ -90,7 +90,7 @@ impl<AccountId, BlockNumber, Balance> Oracle<AccountId, BlockNumber, Balance> {
 		result
 	}
 
-	// Evaluate selection score of a oracle by taking into account the accuracy and reputation
+	// Evaluate selection score of an oracle by taking into account the accuracy and reputation
 	// score
 	pub fn selection_score(self) -> FixedI64 {
 		//update accuracy score
@@ -109,7 +109,7 @@ pub trait OracleOperations<AccountId, BlockNumber, Balance> {
 	}
 }
 
-/// Struct of verification protocol parameters
+/// Struct for protocol parameters
 #[derive(Clone, Encode, Decode, PartialEq, TypeInfo, Debug, MaxEncodedLen)]
 #[scale_info(skip_type_params(T))]
 pub struct ProtocolParameterValues {
