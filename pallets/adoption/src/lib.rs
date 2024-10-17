@@ -515,7 +515,7 @@ pub mod pallet {
 					T::Currency::resolve_creating(&p.0, amount);
 					//update the mint status of the participant
 					AdoptionEventParticipants::<T>::mutate(&bounded_event_id, &p.0, |x| *x = 0); //set the value to 0->not-be-minted
-																			 // Emit mint amount.
+																				  // Emit mint amount.
 					Self::deposit_event(Event::MintedToAccountID {
 						participants: p.0,
 						event_value: mint_value,

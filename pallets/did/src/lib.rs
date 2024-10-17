@@ -34,27 +34,26 @@ pub mod pallet {
 
 	// use scale_info::{prelude::vec::Vec, TypeInfo};
 	// use sp_std::vec::Vec;
-	
+
 	use sp_io::hashing::blake2_256;
-	
+
 	use frame_system::pallet_prelude::*;
-	
+
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
-	
+
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		type Time: MomentTime;
-		
+
 		#[pallet::constant]
 		type MaxNameLength: Get<u32> + Default + TypeInfo;
 
 		#[pallet::constant]
 		type MaxValueLength: Get<u32> + Default + TypeInfo;
-		
 	}
 
 	/// The attributes that belong to an identity.
@@ -64,18 +63,27 @@ pub mod pallet {
 		_,
 		Blake2_128Concat,
 		(T::AccountId, [u8; 32]),
-		Attribute<BlockNumberFor<T>, <<T as Config>::Time as MomentTime>::Moment, <T as Config>::MaxNameLength , <T as Config>::MaxValueLength>,
+		Attribute<
+			BlockNumberFor<T>,
+			<<T as Config>::Time as MomentTime>::Moment,
+			<T as Config>::MaxNameLength,
+			<T as Config>::MaxValueLength,
+		>,
 		ValueQuery,
 	>;
-
 
 	/// Attribute nonce used to generate a unique hash even if the attribute is deleted and
 	/// recreated.
 	#[pallet::storage]
 	#[pallet::getter(fn nonce_of)]
 	/// Keeps track of adoptions events.
-	pub(super) type AttributeNonce<T: Config> =
-		StorageMap<_, Blake2_128Concat, (T::AccountId, BoundedVec<u8, T::MaxNameLength>), u64, ValueQuery>;
+	pub(super) type AttributeNonce<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		(T::AccountId, BoundedVec<u8, T::MaxNameLength>),
+		u64,
+		ValueQuery,
+	>;
 
 	/// Identity owner.
 	#[pallet::storage]
@@ -100,18 +108,14 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Event emitted when an attribute has been added.
-		AttributeAdded{
-			identity: T::AccountId, 
-			name: Vec<u8>, 
-			value: Vec<u8>, 
-			valid_for: Option<BlockNumberFor<T>>
+		AttributeAdded {
+			identity: T::AccountId,
+			name: Vec<u8>,
+			value: Vec<u8>,
+			valid_for: Option<BlockNumberFor<T>>,
 		},
 		/// Event emitted when an attribute is read successfully
-		AttributeFetched{
-			who: T::AccountId, 
-			identity: T::AccountId, 
-			name: Vec<u8>
-		},
+		AttributeFetched { who: T::AccountId, identity: T::AccountId, name: Vec<u8> },
 	}
 
 	// Errors inform users that something went wrong.
@@ -138,8 +142,14 @@ pub mod pallet {
 	}
 
 	impl<T: Config>
-		Did<T::AccountId, BlockNumberFor<T>, <<T as Config>::Time as MomentTime>::Moment, <T as Config>::MaxNameLength , <T as Config>::MaxValueLength, Error<T>>
-		for Pallet<T>
+		Did<
+			T::AccountId,
+			BlockNumberFor<T>,
+			<<T as Config>::Time as MomentTime>::Moment,
+			<T as Config>::MaxNameLength,
+			<T as Config>::MaxValueLength,
+			Error<T>,
+		> for Pallet<T>
 	{
 		/// Validates if the AccountId 'actual_owner' owns the identity.
 		fn is_owner(identity: &T::AccountId, actual_owner: &T::AccountId) -> Result<(), Error<T>> {
@@ -179,19 +189,19 @@ pub mod pallet {
 					None => u32::max_value().into(),
 				};
 
-				let bounded_name_nonce: BoundedVec<u8, T::MaxNameLength> = name.to_vec().try_into()
-    				.map_err(|_| Error::<T>::NameTooLong)?;
+				let bounded_name_nonce: BoundedVec<u8, T::MaxNameLength> =
+					name.to_vec().try_into().map_err(|_| Error::<T>::NameTooLong)?;
 
 				let mut nonce = Self::nonce_of((&identity, bounded_name_nonce));
-				
-				let id = (&identity, name, nonce).using_encoded(blake2_256);
-				
-				let bounded_name: BoundedVec<u8, T::MaxNameLength> = (&name).to_vec().try_into()
-    				.map_err(|_| Error::<T>::NameTooLong)?;
 
-				let bounded_value: BoundedVec<u8, T::MaxValueLength> = (&value).to_vec().try_into()
-    				.map_err(|_| Error::<T>::ValueTooLong)?;
-				
+				let id = (&identity, name, nonce).using_encoded(blake2_256);
+
+				let bounded_name: BoundedVec<u8, T::MaxNameLength> =
+					(&name).to_vec().try_into().map_err(|_| Error::<T>::NameTooLong)?;
+
+				let bounded_value: BoundedVec<u8, T::MaxValueLength> =
+					(&value).to_vec().try_into().map_err(|_| Error::<T>::ValueTooLong)?;
+
 				let new_attribute = Attribute {
 					name: bounded_name,
 					value: bounded_value,
@@ -203,8 +213,8 @@ pub mod pallet {
 				// Prevent panic overflow
 				nonce = nonce.checked_add(1).ok_or(Error::<T>::Overflow)?;
 				<AttributeOf<T>>::insert((&identity, &id), new_attribute);
-				let bounded_name: BoundedVec<u8, T::MaxNameLength> = name.to_vec().try_into()
-    				.map_err(|_| Error::<T>::NameTooLong)?;
+				let bounded_name: BoundedVec<u8, T::MaxNameLength> =
+					name.to_vec().try_into().map_err(|_| Error::<T>::NameTooLong)?;
 				<AttributeNonce<T>>::mutate((&identity, bounded_name), |n| *n = nonce);
 				<UpdatedBy<T>>::insert(identity, (who, now_block_number, now_timestamp));
 				Ok(())
@@ -246,8 +256,8 @@ pub mod pallet {
 				None => return Err(Error::<T>::InvalidAttribute.into()),
 			};
 
-			if (attr.validity > (<frame_system::Pallet<T>>::block_number())) &&
-				(attr.value == value.to_vec())
+			if (attr.validity > (<frame_system::Pallet<T>>::block_number()))
+				&& (attr.value == value.to_vec())
 			{
 				Ok(())
 			} else {
@@ -260,7 +270,14 @@ pub mod pallet {
 		fn attribute_and_id(
 			identity: &T::AccountId,
 			name: &[u8],
-		) -> Option<AttributedId<BlockNumberFor<T>, <<T as Config>::Time as MomentTime>::Moment, <T as Config>::MaxNameLength , <T as Config>::MaxValueLength>> {
+		) -> Option<
+			AttributedId<
+				BlockNumberFor<T>,
+				<<T as Config>::Time as MomentTime>::Moment,
+				<T as Config>::MaxNameLength,
+				<T as Config>::MaxValueLength,
+			>,
+		> {
 			let bounded_name: BoundedVec<u8, T::MaxNameLength> = name.to_vec().try_into().ok()?;
 
 			let nonce = Self::nonce_of((&identity, bounded_name));
@@ -307,12 +324,7 @@ pub mod pallet {
 
 			Self::create_attribute(&who, &identity, &name, &value, valid_for)?;
 			// Emit an event that a new id has been added.
-			Self::deposit_event(Event::AttributeAdded{
-				identity: identity, 
-				name: name, 
-				value: value, 
-				valid_for: valid_for
-			});
+			Self::deposit_event(Event::AttributeAdded { identity, name, value, valid_for });
 			Ok(())
 		}
 
@@ -333,15 +345,11 @@ pub mod pallet {
 				Some(_) => {
 					//emit event on read of an attribute
 					//may be considered to suppress it
-					Self::deposit_event(Event::AttributeFetched{
-						who: who, 
-						identity: identity, 
-						name: name
-					});
+					Self::deposit_event(Event::AttributeFetched { who, identity, name });
 				},
 				None => {
 					//raise error
-					return Err(Error::<T>::AttributeNotFound.into())
+					return Err(Error::<T>::AttributeNotFound.into());
 				},
 			}
 			Ok(())
@@ -358,7 +366,14 @@ pub mod pallet {
 		pub fn read_attribute(
 			identity: &T::AccountId,
 			name: &[u8],
-		) -> Option<Attribute<BlockNumberFor<T>, <<T as Config>::Time as MomentTime>::Moment, <T as Config>::MaxNameLength , <T as Config>::MaxValueLength>> {
+		) -> Option<
+			Attribute<
+				BlockNumberFor<T>,
+				<<T as Config>::Time as MomentTime>::Moment,
+				<T as Config>::MaxNameLength,
+				<T as Config>::MaxValueLength,
+			>,
+		> {
 			let bounded_name: BoundedVec<u8, T::MaxNameLength> = name.to_vec().try_into().ok()?;
 			let nonce = Self::nonce_of((&identity, bounded_name));
 
@@ -395,7 +410,7 @@ pub mod pallet {
 		fn is_account_created(identity: &Self::AccountId) -> bool {
 			let name: Vec<u8> = "VERIFIED".as_bytes().to_vec();
 			if Self::attribute_and_id(identity, &name).is_some() {
-				return true
+				return true;
 			}
 			false
 		}
@@ -405,10 +420,10 @@ pub mod pallet {
 			let valid_for: Option<BlockNumberFor<T>> = None;
 
 			let result = Self::create_attribute(&identity, &identity, &name, &value, valid_for);
-			if let Err(e) = result {
+			if let Err(_e) = result {
 				// sp_io::logging::log::Error!("error in creating DID VERIFIED attribute:{e:?}");
 				// sp_io::logging::log(sp_core::LogLevel::Error, "runtime::io", b"error in creating DID VERIFIED attribute:{e:?}");
-				return Err(())
+				return Err(());
 			}
 			Ok(())
 		}
@@ -417,10 +432,10 @@ pub mod pallet {
 			let name: Vec<u8> = "VERIFIED".as_bytes().to_vec();
 
 			let result = Self::reset_attribute(&identity, &identity, &name);
-			if let Err(e) = result {
+			if let Err(_e) = result {
 				// sp_io::logging::log::log!("error in creating DID VERIFIED attribute:{e:?}");
 				// sp_io::logging::log(sp_core::LogLevel::Error, "runtime::io", b"error in creating DID VERIFIED attribute:{e:?}");
-				return Err(())
+				return Err(());
 			}
 			Ok(())
 		}

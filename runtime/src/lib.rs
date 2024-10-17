@@ -29,6 +29,9 @@ pub use constants::currency::*;
 /// Import the adoption pallet.
 pub use pallet_adoption;
 
+/// Import the did pallet
+pub use pallet_did;
+
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
@@ -323,6 +326,21 @@ impl pallet_adoption::Config for Runtime {
 	// type WeightInfo = ();
 }
 
+parameter_types! {
+	#[derive(TypeInfo, Default)]
+	pub const MaxNameLength: u32 = 256;
+	#[derive(TypeInfo, Default)]
+	pub const MaxValueLength: u32 = 256;
+	pub const MinimumPeriod1: u64 = 5;
+}
+
+impl pallet_did::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Time = Timestamp;
+	type MaxNameLength = u32;
+	type MaxValueLength = u32;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 #[frame_support::runtime]
 mod runtime {
@@ -373,6 +391,9 @@ mod runtime {
 
 	#[runtime::pallet_index(10)]
 	pub type AdoptionModule = pallet_adoption;
+
+	#[runtime::pallet_index(11)]
+	pub type DidModule = pallet_did;
 }
 
 /// The address format for describing accounts.

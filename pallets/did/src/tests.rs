@@ -1,27 +1,113 @@
-use crate::{mock::*, Error, Event, Something};
+use crate::{mock::*, Error};
 use frame_support::{assert_noop, assert_ok};
 
 #[test]
-fn it_works_for_default_value() {
+fn add_attribute() {
 	new_test_ext().execute_with(|| {
-		// Go past genesis block so events get deposited
-		System::set_block_number(1);
-		// Dispatch a signed extrinsic.
-		assert_ok!(TemplateModule::do_something(RuntimeOrigin::signed(1), 42));
-		// Read pallet storage and assert an expected result.
-		assert_eq!(Something::<Test>::get(), Some(42));
-		// Assert that the correct event was deposited
-		System::assert_last_event(Event::SomethingStored { something: 42, who: 1 }.into());
+		//it should succeed if the attribute is not already present for the DID
+		let alice = account_key("Alice");
+		let name = b"id";
+		let attribute = b"did:fn:1234567890";
+
+		assert_ok!(DidModule::add_attribute(
+			RuntimeOrigin::signed(alice),
+			alice,
+			name.to_vec(),
+			attribute.to_vec(),
+			None
+		));
+
+		// Test for duplicate entry
+		assert_noop!(
+			DidModule::add_attribute(
+				RuntimeOrigin::signed(alice),
+				alice,
+				name.to_vec(),
+				attribute.to_vec(),
+				None
+			),
+			Error::<Test>::DuplicateNotNeeded
+		);
 	});
 }
 
 #[test]
-fn correct_error_for_none_value() {
+fn read_attribute_by_non_owner() {
 	new_test_ext().execute_with(|| {
-		// Ensure the expected error is thrown when no value is present.
+		let alice = account_key("Alice");
+		let bob = account_key("Bob");
+		let name = b"id";
+		let attribute = b"did:fn:1234567890";
+
+		assert_ok!(DidModule::add_attribute(
+			RuntimeOrigin::signed(alice),
+			alice,
+			name.to_vec(),
+			attribute.to_vec(),
+			None
+		));
+
+		// Test read existing attribute
+		assert_ok!(DidModule::get_attribute(RuntimeOrigin::signed(bob), alice, name.to_vec()));
+	});
+}
+
+#[test]
+fn read_attribute_by_owner() {
+	new_test_ext().execute_with(|| {
+		let alice = account_key("Alice");
+		let name = b"id";
+		let attribute = b"did:fn:1234567890";
+
+		assert_ok!(DidModule::add_attribute(
+			RuntimeOrigin::signed(alice),
+			alice,
+			name.to_vec(),
+			attribute.to_vec(),
+			None
+		));
+
+		// Test read existing attribute
+		assert_ok!(DidModule::get_attribute(RuntimeOrigin::signed(alice), alice, name.to_vec()));
+
+		// Test read non-existing attribute
 		assert_noop!(
-			TemplateModule::cause_error(RuntimeOrigin::signed(1)),
-			Error::<Test>::NoneValue
+			DidModule::get_attribute(
+				RuntimeOrigin::signed(alice),
+				account_key("invalid"),
+				name.to_vec()
+			),
+			Error::<Test>::AttributeNotFound
+		);
+	});
+}
+
+#[test]
+fn unauthorized_addition() {
+	new_test_ext().execute_with(|| {
+		// test for adding attribute of did by unauthorized user
+		let alice = account_key("Alice");
+		let bob = account_key("Bob");
+		let name = b"id";
+		let attribute = b"did:fn:1234567890";
+
+		assert_ok!(DidModule::add_attribute(
+			RuntimeOrigin::signed(alice),
+			alice,
+			name.to_vec(),
+			attribute.to_vec(),
+			None
+		));
+
+		assert_noop!(
+			DidModule::add_attribute(
+				RuntimeOrigin::signed(bob),
+				alice,
+				name.to_vec(),
+				attribute.to_vec(),
+				None
+			),
+			Error::<Test>::NotOwner
 		);
 	});
 }

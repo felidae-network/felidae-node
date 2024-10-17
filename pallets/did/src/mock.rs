@@ -24,8 +24,10 @@ frame_support::construct_runtime!(
 
 parameter_types! {
 	///max length of id in adoption pallet
-	// pub const MaxNameLength: u32 = 256;
-	// pub const MaxValueLength: u32 = 256;
+	#[derive(TypeInfo, Default)]
+	pub const MaxNameLength: u32 = 256;
+	#[derive(TypeInfo, Default)]
+	pub const MaxValueLength: u32 = 256;
 	pub const MinimumPeriod1: u64 = 5;
 }
 
@@ -40,7 +42,7 @@ impl frame_system::Config for Test {
 	type Nonce = u64;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = u64;
+	type AccountId = sr25519::Public;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Block = Block;
 	type RuntimeEvent = RuntimeEvent;
@@ -56,37 +58,11 @@ impl frame_system::Config for Test {
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
-#[derive(TypeInfo)]
-pub struct MaxNameLength;
-impl frame_support::traits::Get<u32> for MaxNameLength {
-    fn get() -> u32 {
-        256
-    }
-}
-impl Default for MaxNameLength {
-    fn default() -> Self {
-        MaxNameLength
-    }
-}
-
-#[derive(TypeInfo)]
-pub struct MaxValueLength;
-impl frame_support::traits::Get<u32> for MaxValueLength {
-    fn get() -> u32 {
-        256
-    }
-}
-impl Default for MaxValueLength {
-    fn default() -> Self {
-        MaxValueLength
-    }
-}
-
 impl pallet_did::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Time = Timestamp;
 	type MaxNameLength = MaxNameLength;
-    type MaxValueLength = MaxValueLength;
+	type MaxValueLength = MaxValueLength;
 }
 
 impl pallet_timestamp::Config for Test {
