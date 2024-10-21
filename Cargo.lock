@@ -5481,6 +5481,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-oracles"
+version = "1.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk/?branch=release-polkadot-v1.12.0)",
+]
+
+[[package]]
 name = "pallet-session"
 version = "28.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk/?branch=release-polkadot-v1.12.0#ab7838d82bd043f380a699e0de434df3a4f44e04"
