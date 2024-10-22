@@ -51,6 +51,9 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 use frame_support::genesis_builder_helper::{build_state, get_preset};
+
+use scale_info::TypeInfo;
+
 pub use frame_support::{
 	construct_runtime, derive_impl, parameter_types,
 	traits::{
@@ -337,8 +340,8 @@ parameter_types! {
 impl pallet_did::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Time = Timestamp;
-	type MaxNameLength = u32;
-	type MaxValueLength = u32;
+	type MaxNameLength = MaxNameLength;
+	type MaxValueLength = MaxValueLength;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
